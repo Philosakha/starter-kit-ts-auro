@@ -1,31 +1,35 @@
 import Image from "next/image";
+import React, { createContext, useState, useContext, ReactNode } from "react";
 
-("use client");
-import React, { createContext, useContext, useState } from "react";
+// Create a context with an initial balance of 0
+const BalanceContext = createContext<{
+  balance: number;
+  updateBalance: (newBalance: number) => void;
+} | null>(null);
 
-const WalletContext = createContext();
+// Create a provider component that will wrap your app and manage the balance state
+export const BalanceProvider = ({ children }: { children: ReactNode }) => {
+  const [balance, setBalance] = useState(0);
 
-export const WalletProvider = ({ children }) => {
-  const [iseWalletConnected, setWalletConnected] = useState(false);
-
-  const connectWallet = () => {
-    setWalletConnected(true);
-  };
-  const disconnectWallet = () => {
-    setWalletConnected(false);
+  const updateBalance = (newBalance: number) => {
+    setBalance(newBalance);
   };
 
   return (
-    <WalletContext.Provider
-      value={{ iseWalletConnected, connectWallet, disconnectWallet }}
-    >
+    <BalanceContext.Provider value={{ balance, updateBalance }}>
       {children}
-    </WalletContext.Provider>
+    </BalanceContext.Provider>
   );
 };
 
-export const useWallet = () => {
-  return useContext(WalletContext);
+// Create a custom hook to easily access the balance and updateBalance function
+export const useBalance = () => {
+  const context = useContext(BalanceContext);
+  if (!context) {
+    throw new Error("Not inside the provider!");
+  }
+
+  return context;
 };
 
 export default function Home() {
